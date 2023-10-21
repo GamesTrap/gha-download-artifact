@@ -32,7 +32,7 @@ runs:
             echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/workflow_dispatch/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
           fi
     - name: Download artifact (Windows)
-      shell: pwsh
+      shell: powershell
       if: runner.os == 'Windows'
       run: |
           New-PSDrive -Name "X" -PSProvider FileSystem -Root "\\${{inputs.server-hostname}}\${{inputs.server-share}}" -Persist -Credential (New-Object System.Management.Automation.PSCredential (${{inputs.server-username}}, (ConvertTo-SecureString ${{inputs.server-password}} -AsPlainText -Force)))
