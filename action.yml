@@ -1,0 +1,57 @@
+name: 'Download artifact (Samba)'
+description: 'Downloads an artifacts from a Samba share and unpacks it'
+author: 'GamesTrap'
+inputs:
+  server-hostname:
+    description: 'Server IP or domain to download from'
+    required: true
+  server-share:
+    description: "Server share to download from"
+    required: true
+  server-username:
+    description: "Samba login username"
+    required: true
+  server-password:
+    description: "Samba login password"
+    required: true
+  artifact-name:
+    description: "Name of the artifact to download (excluding file ending)"
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Build download path
+      shell: bash
+      id: build-download-path
+      run: |
+          if [[ "${{ github.event_name }}" == 'push' ]]; then
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/branch/${{ github.ref_name }}/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/pull_request/${{github.event.pull_request.number}}/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/workflow_dispatch/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+          fi
+    - name: Download artifact (Windows)
+      shell: pwsh
+      if: runner.os == 'Windows'
+      run: |
+          New-PSDrive -Name "X" -PSProvider FileSystem -Root "\\${{inputs.server-hostname}}\${{inputs.server-share}}" -Persist -Credential (New-Object System.Management.Automation.PSCredential (${{inputs.server-username}}, (ConvertTo-SecureString ${{inputs.server-password}} -AsPlainText -Force)))
+          Copy-Item -Path "X:\${{steps.build-download-path.outputs.DOWNLOAD_PATH}}\${{inputs.artifact-name}}.7z" -Destination ".\${{inputs.artifact-name}}.7z"
+          Remove-PSDrive -Name "X"
+
+    - name: Download artifact (Linux)
+      shell: bash
+      if: runner.os == 'Linux'
+      run: |
+          sudo apt install -y smbclient
+          smbclient //${{inputs.server-hostname}}/${{inputs.server-share}} -U ${{inputs.server-username}}%${{inputs.server-password}} -c 'prompt; recurse; get "${{steps.build-download-path.outputs.DOWNLOAD_PATH}}/${{inputs.artifact-name}}.7z" "${{inputs.artifact-name}}.7z"'
+
+    - name: Extract artifact (7z)
+      shell: bash
+      run: |
+          7z x -aos -bb0 -bse0 -bsp2 -pdefault -sccUTF-8 '${{inputs.artifact-name}}.7z'
+
+    - name: Cleanup artifact
+      shell: bash
+      run: |
+          rm '${{inputs.artifact-name}}.7z'
