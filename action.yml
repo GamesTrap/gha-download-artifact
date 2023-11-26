@@ -25,12 +25,13 @@ runs:
       id: build-download-path
       run: |
           if [[ "${{ github.event_name }}" == 'push' ]]; then
-            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/branch/${{ github.ref_name }}/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/branch/${{ github.ref_name }}/${{github.run_number}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/pull_request/${{github.event.pull_request.number}}/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/pull_request/${{github.event.pull_request.number}}/${{github.run_number}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
-            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/workflow_dispatch/${{github.run_number}}_${{github.run_attempt}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/workflow_dispatch/${{github.run_number}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
           fi
+
     - name: Download artifact (Windows)
       shell: powershell
       if: runner.os == 'Windows'
