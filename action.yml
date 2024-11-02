@@ -30,6 +30,8 @@ runs:
             echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/pull_request/${{github.event.pull_request.number}}/${{github.run_number}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
           elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
             echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/workflow_dispatch/${{github.run_number}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == 'schedule' ]]; then
+            echo "DOWNLOAD_PATH=${{ github.event.repository.name }}/schedule/${{github.run_number}}_${{github.sha}}" >> "$GITHUB_OUTPUT"
           fi
 
     - name: Download artifact (Windows)
